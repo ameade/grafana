@@ -8,6 +8,7 @@ import {PanelCtrl} from './panel_ctrl';
 
 import * as rangeUtil from 'app/core/utils/rangeutil';
 import * as dateMath from 'app/core/utils/datemath';
+import * as moment from 'moment';
 
 import {Subject} from 'vendor/npm/rxjs/Subject';
 
@@ -145,6 +146,7 @@ class MetricsPanelCtrl extends PanelCtrl {
         this.range.from = timeFromDate;
         this.range.to = dateMath.parse(timeFromInfo.to);
       }
+
     }
 
     if (this.panel.timeShift) {
@@ -165,6 +167,10 @@ class MetricsPanelCtrl extends PanelCtrl {
 
     if (this.panel.hideTimeOverride) {
       this.timeInfo = '';
+    }
+
+    if (this.panel.zoomToMetrics && !this.panel.hideTimeOverride) {
+      this.timeInfo = 'Zoomed';
     }
   };
 
@@ -208,6 +214,32 @@ class MetricsPanelCtrl extends PanelCtrl {
     if (!result || !result.data) {
       console.log('Data source query result invalid, missing data field:', result);
       result = {data: []};
+    }
+
+
+    if (this.panel.zoomToMetrics) {
+      var max_time = 0;
+      var min_time = 0;
+
+      var dataset_count = result.data.length;
+      for (var i = 0; i < dataset_count; i++) {
+        var datapoints = result.data[i].datapoints;
+        var datapoint_count = datapoints.length;
+        for (var j = 0; j < datapoint_count; j++) {
+          var datapoint_time = Number(datapoints[j][0]);
+          if (datapoint_time > max_time) {
+            max_time = datapoint_time;
+          }
+          if (datapoint_time < min_time || min_time === 0) {
+            min_time = datapoint_time;
+          }
+        }
+      }
+
+      this.range.from = moment['unix'](min_time);
+      this.range.to = moment['unix'](max_time + 1);
+
+      this.rangeRaw = this.range;
     }
 
     return this.events.emit('data-received', result.data);
