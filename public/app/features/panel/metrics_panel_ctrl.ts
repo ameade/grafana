@@ -225,21 +225,24 @@ class MetricsPanelCtrl extends PanelCtrl {
       for (var i = 0; i < dataset_count; i++) {
         var datapoints = result.data[i].datapoints;
         var datapoint_count = datapoints.length;
-        for (var j = 0; j < datapoint_count; j++) {
-          var datapoint_time = Number(datapoints[j][0]);
+        if (datapoint_count > 0) {
+          var datapoint_time = Number(datapoints[0][0]);
           if (datapoint_time > max_time) {
             max_time = datapoint_time;
           }
+          datapoint_time = Number(datapoints[datapoint_count - 1][0]);
           if (datapoint_time < min_time || min_time === 0) {
             min_time = datapoint_time;
           }
         }
       }
 
-      this.range.from = moment['unix'](min_time);
-      this.range.to = moment['unix'](max_time + 1);
+      if (min_time > 0 && max_time > 0) {
+        this.range.from = moment['unix'](min_time);
+        this.range.to = moment['unix'](max_time + 1);
 
-      this.rangeRaw = this.range;
+        this.rangeRaw = this.range;
+      }
     }
 
     return this.events.emit('data-received', result.data);
