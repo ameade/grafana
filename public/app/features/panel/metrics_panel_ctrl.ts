@@ -254,10 +254,12 @@ class MetricsPanelCtrl extends PanelCtrl {
         }
       }
 
-      this.range.from = moment['unix'](min_time);
-      this.range.to = moment['unix'](max_time + 1);
+      if (min_time > 0 && max_time > 0) {
+        this.range.from = moment['unix'](min_time);
+        this.range.to = moment['unix'](max_time + 1);
 
-      this.rangeRaw = this.range;
+        this.rangeRaw = this.range;
+      }
     }
 
     return this.events.emit('data-received', result.data);
