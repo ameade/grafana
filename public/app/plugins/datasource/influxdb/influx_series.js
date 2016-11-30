@@ -92,12 +92,21 @@ function (_, TableModel) {
         if (column === self.annotation.tagsColumn) { tagsCol = index; return; }
         if (column === self.annotation.textColumn) { textCol = index; return; }
       });
+      var regex = /\$(\w+)|\[\[([\s\S]+?)\]\]/g;
 
       _.each(series.values, function (value) {
+        var title = self.annotation.titleColumn.replace(regex, function(match, g1, g2) {
+          var group = g1 || g2;
+          var index = series.columns.indexOf(group)
+          if (index >= 0) {
+            return value[index];
+          }
+          return match;
+        });
         var data = {
           annotation: self.annotation,
           time: + new Date(value[timeCol]),
-          title: value[titleCol],
+          title: title,
           tags: value[tagsCol],
           text: value[textCol]
         };
